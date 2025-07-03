@@ -41,10 +41,19 @@ const Register = () => {
                 }, 1000);
                 setLoading(false);
             } else {
-                toast.error(response?.payload?.message || "Registration failed. Please try again.");
+                toast.error(
+                    Array.isArray(response?.payload)
+                        ? response.payload.join(", ") // or join with "\n" if multiline is preferred
+                        : response?.payload || "Login failed. Please try again."
+                );
                 setLoading(false);
             }
-        })
+        }).catch((error) => {
+            console.error("Register Error:", error);
+            toast.dismiss(); // Dismiss any previous toasts
+            toast.error(error?.message || "Register failed. Please try again.");
+            setLoading(false);
+        });
     };
 
     return (

@@ -15,9 +15,8 @@ const Login = () => {
     const handleLogin = (e) => {
         e.preventDefault();
         setLoading(true);
-        toast.loading("Logging in...");
         dispatch(login({ email, password })).then((response) => {
-            // console.log("Login Response:", response);
+            console.log("Login Response:", response);
             if (response.payload.status === 200) {
                 toast.dismiss(); // Dismiss any previous toasts
                 toast.success("Login successful!")
@@ -28,10 +27,19 @@ const Login = () => {
                 setLoading(false);
             } else {
                 toast.dismiss(); // Dismiss any previous toasts
-                toast.error(response?.payload?.message || "Login failed. Please try again.");
+                toast.error(
+                    Array.isArray(response?.payload)
+                        ? response.payload.join(", ") // or join with "\n" if multiline is preferred
+                        : response?.payload || "Login failed. Please try again."
+                );
                 setLoading(false);
             }
-        })
+        }).catch((error) => {
+            console.error("Login Error:", error);
+            toast.dismiss(); // Dismiss any previous toasts
+            toast.error(error?.message || "Login failed. Please try again.");
+            setLoading(false);
+        });
     };
 
     return (

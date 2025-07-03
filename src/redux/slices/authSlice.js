@@ -14,7 +14,7 @@ export const register = createAsyncThunk(
             return response;
         } catch (error) {
             console.error('Error in register:', error);
-            return rejectWithValue(error.response.data);
+            return rejectWithValue(error.response.data.message || 'Registration failed. Please try again.');
         }
     }
 );
@@ -30,7 +30,7 @@ export const login = createAsyncThunk(
             return response;
         } catch (error) {
             console.error('Error in login:', error);
-            return rejectWithValue(error);
+            return rejectWithValue(error.response.data.message || 'Login failed. Please try again.');
         }
     }
 );
