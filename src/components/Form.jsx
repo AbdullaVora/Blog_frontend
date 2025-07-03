@@ -1,889 +1,632 @@
-// "use client";
-
 // import { Helmet } from "react-helmet";
-// import {
-//   addstories,
-//   getAllstories,
-//   getstoriesById,
-//   updatestories,
-// } from "../api/CRUD";
-// import React, { useState, useEffect } from "react";
-// import { Link, useNavigate, useParams } from "react-router-dom";
-// import { ToastContainer, toast } from 'react-toastify';
-// import 'react-toastify/dist/ReactToastify.css';
-// // Removed Next.js imports since not using Next.js
-
-// const StoriesForm = () => {
-//   const { id } = useParams()
-//   const navigate = useNavigate()
-//   // Fixed: Separate state for form data (single story) and stories list (array)
-//   const [storyForm, setStoryForm] = useState({
-//     name: "",
-//     email: "",
-//     title: "",
-//     body: "",
-//     badge: "",
-//     media: null, // Will store { fileData, fileName, fileType }
-//   });
-
-//   const [storiesList, setStoriesList] = useState([]); // Array for all stories
-//   const [editingId, setEditingId] = useState(null);
-//   const [showstoriesList, setShowstoriesList] = useState(false);
-
-//   // Load stories and check for ID parameter on component mount
-//   useEffect(() => {
-//     loadstories();
-
-
-
-//     if (id) {
-//       handleEditFromParams(id);
-//     }
-//   }, []);
-
-//   const loadstories = async () => {
-//     try {
-//       const data = await getAllstories();
-//       setStoriesList(data); // Fixed: Set to storiesList array
-//     } catch (error) {
-//       toast.error("Failed to load stories", { position: "top-right" });
-//       console.error("Load stories error:", error);
-//     }
-//   };
-
-//   // New function to handle editing from URL parameters
-//   const handleEditFromParams = async (id) => {
-//     try {
-//       const storiesData = await getstoriesById(id);
-//       if (storiesData) {
-//         setStoryForm({
-//           name: storiesData.name || "",
-//           email: storiesData.email || "",
-//           title: storiesData.title || "",
-//           body: storiesData.body || "",
-//           badge: storiesData.badge || "",
-//           media: storiesData.media || null,
-//         });
-//         setEditingId(id);
-//         setShowstoriesList(false); // Show form for editing
-//         // toast.info("Story loaded for editing from URL", { position: "top-right" });
-//       } else {
-//         toast.error("Story not found", { position: "top-right" });
-//       }
-//     } catch (error) {
-//       toast.error("Failed to load story from URL", { position: "top-right" });
-//       console.error("Edit from params error:", error);
-//     }
-//   };
-
-//   const handleChange = (e) => {
-//     const { name, value } = e.target;
-//     setStoryForm((prev) => ({ ...prev, [name]: value }));
-//   };
-
-//   const handleMediaChange = (e) => {
-//     if (e.target.files && e.target.files[0]) {
-//       const file = e.target.files[0];
-
-//       // Validate file type
-//       if (!file.type.match('image.*') && !file.type.match('video.*')) {
-//         toast.error("Please upload an image or video file", { position: "top-right" });
-//         return;
-//       }
-
-//       // Validate file size (5MB limit)
-//       if (file.size > 5 * 1024 * 1024) {
-//         toast.error("File size too large (max 5MB)", { position: "top-right" });
-//         return;
-//       }
-
-//       const reader = new FileReader();
-//       reader.onload = (event) => {
-//         setStoryForm((prev) => ({
-//           ...prev,
-//           media: {
-//             fileData: event.target.result,
-//             fileName: file.name,
-//             fileType: file.type
-//           }
-//         }));
-//       };
-//       reader.onerror = (error) => {
-//         toast.error("Error reading file", { position: "top-right" });
-//         console.error("Error reading file:", error);
-//       };
-//       reader.readAsDataURL(file);
-//     }
-//   };
-
-//   const handleSubmit = async (e) => {
-//     e.preventDefault();
-
-//     try {
-//       if (editingId) {
-//         // Update existing story using editingId
-//         const data = await updatestories(editingId, storyForm);
-//         if (data) {
-//           toast.success("Story updated successfully", { position: "top-right" });
-//           setEditingId(null);
-//           resetForm();
-//           loadstories();
-//           // Clear URL parameter after successful update using standard browser API
-//           const url = new URL(window.location);
-//           url.searchParams.delete('id');
-//           window.history.replaceState({}, '', url);
-//           navigate("/")
-//         } else {
-//           toast.error("Failed to update story", { position: "top-right" });
-//         }
-//       } else {
-//         // Add new story
-//         const data = await addstories(storyForm);
-//         if (data) {
-//           toast.success("Story added successfully", { position: "top-right" });
-//           resetForm();
-//           loadstories();
-//         } else {
-//           toast.error("Failed to add story", { position: "top-right" });
-//         }
-//       }
-//     } catch (error) {
-//       toast.error("An error occurred. Please try again.", { position: "top-right" });
-//       console.error("Submission error:", error);
-//     }
-//   };
-
-
-//   const resetForm = () => {
-//     setStoryForm({
-//       name: "",
-//       email: "",
-//       title: "",
-//       body: "",
-//       media: null,
-//     });
-//     setEditingId(null);
-//   };
-
-//   const cancelEdit = () => {
-//     resetForm();
-//     // Clear URL parameter when canceling edit using standard browser API
-//     const url = new URL(window.location);
-//     url.searchParams.delete('id');
-//     window.history.replaceState({}, '', url);
-//     toast.info("Edit cancelled", { position: "top-right" });
-//   };
-
-//   const removeMedia = () => {
-//     setStoryForm(prev => ({ ...prev, media: null }));
-//   };
-
-//   return (
-//     <>
-//       <Helmet>
-//         <title>Submit Stories | New York Lore - Discover the Untold Stories</title>
-//         <meta name="description" content="A New York Lore platform showcasing New York’s hidden street-art, urban legends, and community stories—through photos, videos, poems, sketches, and interactive features." />
-//       </Helmet>
-//       <div className="overflow-hidden min-h-screen">
-//         <div className="flex items-center min-h-screen justify-center bg-gray-900 text-white px-10">
-//           {/* Form Container */}
-//           <div className="w-full bg-gray-800 p-8 rounded-lg shadow-lg">
-//             <h2 className="text-3xl font-bold text-center text-green-400 mb-6">
-//               {editingId ? "Edit Stories" : "Add New Stories"}
-//             </h2>
-
-//             {editingId && (
-//               <div className="text-center mb-4">
-//                 <button
-//                   onClick={cancelEdit}
-//                   className="px-4 py-2 text-white bg-red-500 rounded-md hover:bg-red-400 transition mr-2"
-//                 >
-//                   Cancel Edit
-//                 </button>
-//               </div>
-//             )}
-
-//             <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
-//               {/* Left Side */}
-//               <div className="space-y-4">
-//                 {/* Name */}
-//                 <div>
-//                   <label className="block text-sm font-medium text-gray-300">Name</label>
-//                   <input
-//                     type="text"
-//                     name="name"
-//                     className="w-full px-3 py-2 mt-1 bg-gray-700 border border-gray-600 rounded-md focus:ring focus:ring-green-500 outline-none"
-//                     placeholder="Enter your name"
-//                     value={storyForm.name}
-//                     onChange={handleChange}
-//                     required
-//                   />
-//                 </div>
-
-//                 {/* Email */}
-//                 <div>
-//                   <label className="block text-sm font-medium text-gray-300">Email</label>
-//                   <input
-//                     type="email"
-//                     name="email"
-//                     className="w-full px-3 py-2 mt-1 bg-gray-700 border border-gray-600 rounded-md focus:ring focus:ring-green-500 outline-none"
-//                     placeholder="Enter your email"
-//                     value={storyForm.email}
-//                     onChange={handleChange}
-//                     required
-//                   />
-//                 </div>
-
-//                 {/* Title */}
-//                 <div>
-//                   <label className="block text-sm font-medium text-gray-300">Title</label>
-//                   <input
-//                     type="text"
-//                     name="title"
-//                     className="w-full px-3 py-2 mt-1 bg-gray-700 border border-gray-600 rounded-md focus:ring focus:ring-green-500 outline-none"
-//                     placeholder="Enter story title"
-//                     value={storyForm.title}
-//                     onChange={handleChange}
-//                     required
-//                   />
-//                 </div>
-
-//                 {/* Badge Dropdown */}
-//                 <div>
-//                   <label className="block text-sm font-medium text-gray-300">Badge</label>
-//                   <select
-//                     name="badge"
-//                     value={storyForm.badge}
-//                     onChange={handleChange}
-//                     className="w-full px-3 py-2 mt-1 bg-gray-700 border border-gray-600 rounded-md focus:ring focus:ring-green-500 outline-none"
-//                     required
-//                   >
-//                     <option value="" >Select a badge</option>
-//                     <option value="Article">Article</option>
-//                     <option value="Poems">Poems</option>
-//                     <option value="Stories">Stories</option>
-//                   </select>
-//                 </div>
-
-
-//                 {/* Media Upload */}
-//                 <div>
-//                   <label className="block text-sm font-medium text-gray-300">
-//                     {storyForm.media ? "Replace Media" : "Upload Image or Video"}
-//                   </label>
-//                   <input
-//                     type="file"
-//                     accept="image/*,video/*"
-//                     className="w-full px-3 py-2 mt-1 bg-gray-700 border border-gray-600 rounded-md focus:ring focus:ring-green-500 outline-none cursor-pointer"
-//                     onChange={handleMediaChange}
-//                   />
-//                   <p className="text-xs text-gray-400 mt-1">Supports images and videos (max 5MB)</p>
-
-//                   {/* Media Preview */}
-//                   {storyForm.media && storyForm.media.fileType && (
-//                     <div className="mb-4">
-//                       {storyForm.media.fileType.match('image.*') ? (
-//                         <img
-//                           src={storyForm.media.fileData}
-//                           alt="Story media"
-//                           className="w-full h-auto rounded-md"
-//                         />
-//                       ) : storyForm.media.fileType.match('video.*') ? (
-//                         <video
-//                           muted
-//                           loop
-//                           src={storyForm.media.fileData}
-//                           autoPlay
-//                           className="w-full h-auto rounded-md"
-//                         />
-//                       ) : (
-//                         <div className="text-gray-400 text-sm">
-//                           Unsupported media type: {storyForm.media.fileType}
-//                         </div>
-//                       )}
-//                     </div>
-//                   )}
-//                 </div>
-//               </div>
-
-//               {/* Right Side */}
-//               <div>
-//                 <label className="block text-sm font-medium text-gray-300">Body (Story Content)</label>
-//                 <textarea
-//                   name="body"
-//                   className="w-full h-[375px] px-3 py-2 mt-1 bg-gray-700 border border-gray-600 rounded-md focus:ring focus:ring-green-500 outline-none resize-none"
-//                   placeholder="Write your story here..."
-//                   value={storyForm.body}
-//                   onChange={handleChange}
-//                   required
-//                 ></textarea>
-//                 <button
-//                   type="submit"
-//                   className="w-full py-2 text-white bg-green-500 rounded-md hover:bg-green-400 transition"
-//                 >
-//                   {editingId ? "Update Story" : "Add Story"}
-//                 </button>
-//                 <Link to="/stories">
-//                   <button
-//                     type="button"
-//                     onClick={() => setShowstoriesList(true)}
-//                     className="w-full mt-2 py-2 text-white bg-green-500 rounded-md hover:bg-green-400 transition"
-//                   >
-//                     Show All Stories
-//                   </button>
-//                 </Link>
-//               </div>
-//             </form>
-//           </div>
-//         </div>
-//         <ToastContainer />
-//       </div>
-//     </>
-//   );
-// };
-
-// export default StoriesForm;
-
-// "use client";
-
-// import { Helmet } from "react-helmet";
-// import { useState, useEffect } from "react";
+// import { useState, useEffect, useRef } from "react";
 // import { Link, useNavigate, useParams } from "react-router-dom";
 // import { ToastContainer, toast } from 'react-toastify';
 // import 'react-toastify/dist/ReactToastify.css';
 // import { AdvancedImage, AdvancedVideo } from '@cloudinary/react';
-// import { Cloudinary } from '@cloudinary/url-gen';
-// import { addstories, getAllstories, getstoriesById } from "../api/CRUD";
+// import { addBlog, getBlogById, updateBlog } from "../redux/slices/blogSlice";
+// import { useDispatch } from "react-redux";
 
-// // Initialize Cloudinary instance
-// const cld = new Cloudinary({
-//   cloud: {
-//     cloudName: 'dcevzhfy9' // Replace with your Cloudinary cloud name
-//   }
-// });
 
-// const StoriesForm = () => {
+
+// const BlogForm = () => {
 //   const { id } = useParams();
-//   console.log(id)
 //   const navigate = useNavigate();
-//   const [storyForm, setStoryForm] = useState({
-//     name: "",
-//     email: "",
+//   const fileInputRef = useRef(null);
+//   const dispatch = useDispatch()
+
+
+//   const [blogForm, setblogForm] = useState({
 //     title: "",
-//     body: "",
-//     badge: "",
-//     media: null, // Will store { publicId, url, fileType, format }
+//     author: "",
+//     description: "",
+//     category: "",
+//     tags: [],
+//     media: null,
 //   });
 
-//   const [storiesList, setStoriesList] = useState([]);
+//   const [blogList, setblogList] = useState([]);
 //   const [editingId, setEditingId] = useState(null);
-//   const [showstoriesList, setShowstoriesList] = useState(false);
+//   const [showblogList, setShowblogList] = useState(false);
+//   const [loading, setLoading] = useState(false);
+
 
 //   useEffect(() => {
-//     loadstories();
 //     if (id) {
 //       handleEditFromParams(id);
+//     } else {
+//       resetForm();
+//       setShowblogList(true);
 //     }
-//   }, []);
+//   }, [id])
 
-//   const loadstories = async () => {
-//     try {
-//       const data = await getAllstories();
-//       setStoriesList(data);
-//     } catch (error) {
-//       console.error("Load stories error:", error);
-//     }
-//   };
 
 //   const handleEditFromParams = async (id) => {
 //     try {
-//       const storiesData = await getstoriesById(id);
-//       if (storiesData) {
-//         setStoryForm({
-//           name: storiesData.name || "",
-//           email: storiesData.email || "",
-//           title: storiesData.title || "",
-//           body: storiesData.body || "",
-//           badge: storiesData.badge || "",
-//           media: storiesData.media || null,
+//       const blogData = await dispatch(getBlogById(id));
+//       console.log("blogData", blogData);
+//       if (blogData) {
+//         setblogForm({
+//           title: blogData.payload.blog.title || "",
+//           author: blogData.payload.blog.author || "",
+//           description: blogData.payload.blog.description || "",
+//           category: blogData.payload.blog.category || "",
+//           tags: blogData.payload.blog.tags || [],
+//           media: blogData.payload.blog.media || null,
 //         });
 //         setEditingId(id);
-//         setShowstoriesList(false);
-//       } else {
-//         toast.error("Story not found", { position: "top-right" });
+//         setShowblogList(false);
 //       }
 //     } catch (error) {
+//       toast.error("Failed to load Blog", { position: "top-right" });
 //       console.error("Edit from params error:", error);
 //     }
 //   };
 
+//   // const handleChange = (e) => {
+//   //   const { name, value } = e.target;
+//   //   if (name === "tags") {
+//   //     const tagsArray = value.split(',').map(tag => tag.trim()).filter(tag => tag);
+//   //     setblogForm((prev) => ({ ...prev, tags: tagsArray }));
+//   //     return;
+//   //   }
+//   //   setblogForm((prev) => ({ ...prev, [name]: value }));
+//   // };
+
 //   const handleChange = (e) => {
 //     const { name, value } = e.target;
-//     setStoryForm((prev) => ({ ...prev, [name]: value }));
+//     if (name === "tags") {
+//       let tagsArray;
+
+//       // If value contains commas, split by commas
+//       if (value.includes(',')) {
+//         tagsArray = value
+//           .split(',')
+//           .map(tag => tag.trim())
+//           .filter(tag => tag.length > 0);
+//       }
+//       // Otherwise, split by spaces but be smart about it
+//       else {
+//         // Split by multiple spaces or single space, but preserve multi-word tags
+//         tagsArray = value
+//           .split(/\s{2,}|\s+(?=[A-Z])|(?<=\w)\s+(?=\w*$)/) // Complex regex for smart splitting
+//           .map(tag => tag.trim())
+//           .filter(tag => tag.length > 0);
+//       }
+
+//       setblogForm(prev => ({ ...prev, tags: tagsArray }));
+//       return;
+//     }
+//     setblogForm(prev => ({ ...prev, [name]: value }));
 //   };
+
+
 
 //   const handleMediaChange = async (e) => {
 //     if (e.target.files && e.target.files[0]) {
 //       const file = e.target.files[0];
 
-//       // Validate file
-//       if (!file.type.match('image.*') && !file.type.match('video.*')) {
-//         toast.error("Only images and videos are allowed");
+//       if (!file.type.match('image.*') && !file.type.match('video.*') && !file.type.match('gif.*')) {
+//         toast.error("Only images, videos, and gifs are allowed");
 //         return;
 //       }
 
 //       try {
-//         const formData = new FormData();
-//         formData.append('file', file);
-//         formData.append('upload_preset', 'stories_upload'); // Your preset name
-//         formData.append('folder', 'TechAssignment');
+//         // const toastId = toast.loading("Uploading media...", { position: "top-right" });
 
-//         // Use original filename as public_id
-//         formData.append('public_id', file.name.split('.')[0]); // Remove extension
-
-//         const response = await fetch(
-//           `https://api.cloudinary.com/v1_1/dcevzhfy9/upload`,
-//           {
-//             method: 'POST',
-//             body: formData
+//         const reader = new FileReader();
+//         reader.onloadend = () => {
+//           const base64 = reader.result;
+//           if (!base64) {
+//             toast.error("Failed to read file");
+//             return;
 //           }
-//         );
 
-//         const data = await response.json();
+//           setblogForm((prev) => ({
+//             ...prev,
+//             media: base64,
+//           }));
 
-//         if (data.error) {
-//           throw new Error(data.error.message);
-//         }
+//         };
 
-//         // Update state with Cloudinary response
-//         setStoryForm(prev => ({
-//           ...prev,
-//           media: {
-//             publicId: data.public_id,
-//             url: data.secure_url,
-//             fileType: data.resource_type,
-//             format: data.format
-//           }
-//         }));
-
-//         toast.success({
-//           render: "Media uploaded successfully!",
-//           type: "success",
-//           isLoading: false,
-//           autoClose: 3000
-//         });
+//         reader.readAsDataURL(file); // ✅ Correct position
 //       } catch (error) {
-//         toast.error(`Upload failed: ${error.message}`, { position: "top-right" });
+//         toast.error(`Upload failed: ${error.message}`);
 //         console.error("Upload error:", error);
 //       }
 //     }
 //   };
 
+
 //   const handleSubmit = async (e) => {
 //     e.preventDefault();
-
+//     setLoading(true);
 //     try {
 //       if (editingId) {
-//         // Update existing story using editingId
-//         const data = await updatestories(editingId, storyForm);
+//         const data = await dispatch(updateBlog({ blogId: editingId, blogData: blogForm }));
 //         if (data) {
-//           toast.success("Story updated successfully", { position: "top-right" });
-//           setEditingId(null);
+//           toast.success("Blog updated successfully");
 //           resetForm();
-//           loadstories();
-//           const url = new URL(window.location);
-//           url.searchParams.delete('id');
-//           window.history.replaceState({}, '', url);
 //           navigate("/");
-//         } else {
-//           toast.error("Failed to update story", { position: "top-right" });
 //         }
 //       } else {
-//         // Add new story
-//         const data = await addstories(storyForm);
+//         const data = await dispatch(addBlog(blogForm));
+//         // console.log("data", data);
 //         if (data) {
-//           toast.success("Story added successfully", { position: "top-right" });
-//           resetForm();
-//           loadstories();
-//         } else {
-//           toast.error("Failed to add story", { position: "top-right" });
+//           toast.success("Blog added successfully");
+//           // resetForm();
 //         }
 //       }
 //     } catch (error) {
-//       toast.error("An error occurred. Please try again.", { position: "top-right" });
+//       toast.error("An error occurred. Please try again.");
 //       console.error("Submission error:", error);
+//     } finally {
+//       setLoading(false);
+//       resetForm();
+//       navigate("/");
 //     }
 //   };
 
 //   const resetForm = () => {
-//     setStoryForm({
-//       name: "",
-//       email: "",
+//     setblogForm({
 //       title: "",
-//       body: "",
-//       badge: "",
+//       decsription: "",
+//       author: "",
+//       category: "",
+//       tags: [],
 //       media: null,
 //     });
 //     setEditingId(null);
+//     if (fileInputRef.current) fileInputRef.current.value = '';
+//   };
+
+//   const removeMedia = () => {
+//     setblogForm(prev => ({ ...prev, media: null }));
+//     if (fileInputRef.current) fileInputRef.current.value = '';
 //   };
 
 //   const cancelEdit = () => {
 //     resetForm();
-//     const url = new URL(window.location);
-//     url.searchParams.delete('id');
-//     window.history.replaceState({}, '', url);
-//     toast.info("Edit cancelled", { position: "top-right" });
+//     navigate("/");
+//     toast.info("Edit cancelled");
 //   };
 
-//   const removeMedia = () => {
-//     setStoryForm(prev => ({ ...prev, media: null }));
+
+//   const renderMediaPreview = (media) => {
+//     if (!media) return null;
+//     console.log("renderMediaPreview", media);
+
+//     // Handle base64 images
+//     if (media.startsWith('data:image')) {
+//       return (
+//         <img
+//           src={media}
+//           className="w-full h-[350px] rounded-md"
+//           alt="Blog media preview"
+//         />
+//       );
+//     }
+
+
+//     // Handle case where media is just a URL string
+//     if (typeof media === 'string') {
+//       const extension = media.split('.').pop().toLowerCase();
+//       const isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(extension);
+
+//       return isImage ? (
+//         <img
+//           src={media}
+//           className="w-full h-[350px] rounded-md"
+//           alt="Blog media"
+//         />
+//       ) : (
+//         <video
+//           src={media}
+//           className="w-full h-[350px] rounded-md"
+//           autoPlay
+//           muted
+//           loop
+//         />
+//       );
+//     }
+
+//     return null;
 //   };
 
 //   return (
 //     <>
 //       <Helmet>
-//         <title>Submit Stories | New York Lore - Discover the Untold Stories</title>
-//         <meta name="description" content="A New York Lore platform showcasing New York's hidden street-art, urban legends, and community stories—through photos, videos, poems, sketches, and interactive features." />
+//         <title>Create Blog</title>
+//         <meta name="description" content="Share your New York blog through photos, videos, and more." />
 //       </Helmet>
-//       <div className="overflow-hidden min-h-screen">
-//         <div className="flex items-center min-h-screen justify-center bg-gray-900 text-white px-10">
-//           {/* Form Container */}
-//           <div className="w-full bg-gray-800 p-8 rounded-lg shadow-lg">
-//             <h2 className="text-3xl font-bold text-center text-green-400 mb-6">
-//               {editingId ? "Edit Stories" : "Add New Stories"}
-//             </h2>
+//       <div className="flex items-center justify-center min-h-screen py-5 bg-gray-900 text-white px-10">
+//         <div className="w-full bg-gray-800 p-8 rounded-lg shadow-lg">
+//           <h2 className="text-3xl font-bold text-center text-green-400 mb-6">
+//             {editingId ? "Edit Blog" : "Add New Blog"}
+//           </h2>
 
-//             {editingId && (
-//               <div className="text-center mb-4">
-//                 <button
-//                   onClick={cancelEdit}
-//                   className="px-4 py-2 text-white bg-red-500 rounded-md hover:bg-red-400 transition mr-2"
-//                 >
-//                   Cancel Edit
-//                 </button>
+//           {editingId && (
+//             <div className="text-center mb-4">
+//               <button
+//                 onClick={cancelEdit}
+//                 className="px-4 py-2 text-white bg-red-500 rounded-md hover:bg-red-400 transition"
+//               >
+//                 Cancel Edit
+//               </button>
+//             </div>
+//           )}
+
+//           <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+//             <div className="space-y-4">
+//               <div>
+//                 <label className="block text-sm font-medium text-gray-300">Blog Title</label>
+//                 <input
+//                   type="text"
+//                   name="title"
+//                   className="w-full px-3 py-2 mt-1 bg-gray-700 border border-gray-600 rounded-md focus:ring focus:ring-green-500 outline-none"
+//                   value={blogForm.title}
+//                   onChange={handleChange}
+//                   required
+//                 />
 //               </div>
-//             )}
 
-//             <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
-//               {/* Left Side */}
-//               <div className="space-y-4">
-//                 {/* Name */}
-//                 <div>
-//                   <label className="block text-sm font-medium text-gray-300">Name</label>
-//                   <input
-//                     type="text"
-//                     name="name"
-//                     className="w-full px-3 py-2 mt-1 bg-gray-700 border border-gray-600 rounded-md focus:ring focus:ring-green-500 outline-none"
-//                     placeholder="Enter your name"
-//                     value={storyForm.name}
-//                     onChange={handleChange}
-//                     required
-//                   />
-//                 </div>
+//               <div>
+//                 <label className="block text-sm font-medium text-gray-300">Blog Author</label>
+//                 <input
+//                   type="text"
+//                   name="author"
+//                   className="w-full px-3 py-2 mt-1 bg-gray-700 border border-gray-600 rounded-md focus:ring focus:ring-green-500 outline-none"
+//                   value={blogForm.author}
+//                   onChange={handleChange}
+//                   required
+//                 />
+//               </div>
 
-//                 {/* Email */}
-//                 <div>
-//                   <label className="block text-sm font-medium text-gray-300">Email</label>
-//                   <input
-//                     type="email"
-//                     name="email"
-//                     className="w-full px-3 py-2 mt-1 bg-gray-700 border border-gray-600 rounded-md focus:ring focus:ring-green-500 outline-none"
-//                     placeholder="Enter your email"
-//                     value={storyForm.email}
-//                     onChange={handleChange}
-//                     required
-//                   />
-//                 </div>
+//               <div>
+//                 <label className="block text-sm font-medium text-gray-300">Category</label>
+//                 <select
+//                   name="category"
+//                   value={blogForm.category}
+//                   onChange={handleChange}
+//                   className="w-full px-3 py-2 mt-1 bg-gray-700 border border-gray-600 rounded-md focus:ring focus:ring-green-500 outline-none"
+//                   required
+//                 >
+//                   <option value="">Select a Catgeory</option>
+//                   <option value="Article">Article</option>
+//                   <option value="Poems">Poems</option>
+//                   <option value="blog">blog</option>
+//                 </select>
+//               </div>
 
-//                 {/* Title */}
-//                 <div>
-//                   <label className="block text-sm font-medium text-gray-300">Title</label>
-//                   <input
-//                     type="text"
-//                     name="title"
-//                     className="w-full px-3 py-2 mt-1 bg-gray-700 border border-gray-600 rounded-md focus:ring focus:ring-green-500 outline-none"
-//                     placeholder="Enter story title"
-//                     value={storyForm.title}
-//                     onChange={handleChange}
-//                     required
-//                   />
-//                 </div>
+//               <div>
+//                 <label className="block text-sm font-medium text-gray-300">Tags</label>
+//                 <input
+//                   type="text"
+//                   name="tags"
+//                   value={displayTags()} // Show tags separated by spaces
+//                   onChange={handleChange}
+//                   placeholder="Enter tags separated by spaces or commas"
+//                   className="w-full px-3 py-2 mt-1 bg-gray-700 border border-gray-600 rounded-md"
+//                 />
+//               </div>
 
-//                 {/* Badge Dropdown */}
-//                 <div>
-//                   <label className="block text-sm font-medium text-gray-300">Badge</label>
-//                   <select
-//                     name="badge"
-//                     value={storyForm.badge}
-//                     onChange={handleChange}
-//                     className="w-full px-3 py-2 mt-1 bg-gray-700 border border-gray-600 rounded-md focus:ring focus:ring-green-500 outline-none"
-//                     required
-//                   >
-//                     <option value="">Select a badge</option>
-//                     <option value="Article">Article</option>
-//                     <option value="Poems">Poems</option>
-//                     <option value="Stories">Stories</option>
-//                   </select>
-//                 </div>
+//               <div>
+//                 <label className="block text-sm font-medium text-gray-300">
+//                   {blogForm.media ? "Replace Media" : "Upload Image or Video"}
+//                 </label>
+//                 <input
+//                   type="file"
+//                   ref={fileInputRef}
+//                   accept="image/*,video/*, gif/*"
+//                   disabled={loading}
+//                   className="w-full px-3 py-2 mt-1 bg-gray-700 border border-gray-600 rounded-md focus:ring focus:ring-green-500 outline-none cursor-pointer disabled:opacity-50"
+//                   onChange={handleMediaChange}
+//                 />
+//                 <p className="text-xs text-gray-400 mt-1">Supports images and videos (max 5MB)</p>
 
-//                 {/* Media Upload */}
-//                 <div>
-//                   <label className="block text-sm font-medium text-gray-300">
-//                     {storyForm.media ? "Replace Media" : "Upload Image or Video"}
-//                   </label>
-//                   <input
-//                     type="file"
-//                     accept="image/*,video/*"
-//                     className="w-full px-3 py-2 mt-1 bg-gray-700 border border-gray-600 rounded-md focus:ring focus:ring-green-500 outline-none cursor-pointer"
-//                     onChange={handleMediaChange}
-//                   />
-//                   <p className="text-xs text-gray-400 mt-1">Supports images and videos (max 5MB)</p>
-
-//                   {/* Media Preview */}
-//                   {storyForm.media && storyForm.media.publicId && (
-//                     <div className="mb-4">
-//                       {storyForm.media.fileType === 'image' ? (
+//                 {blogForm.media && (
+//                   <div className="mb-4 mt-2">
+//                     {/* {blogForm.media.fileType === 'image' ? (
 //                         <AdvancedImage
-//                           cldImg={cld.image(storyForm.media.publicId)}
+//                           key={`img-${blogForm.media.publicId}`}
+//                           cldImg={cld.image(blogForm.media.publicId)}
 //                           className="w-full h-auto rounded-md"
-//                           alt="Story media"
+//                           alt="Blog media"
 //                         />
-//                       ) : storyForm.media.fileType === 'video' ? (
+//                       ) : (
 //                         <AdvancedVideo
-//                           cldVid={cld.video(storyForm.media.publicId)}
+//                           key={`vid-${blogForm.media.publicId}`}
+//                           cldVid={cld.video(blogForm.media.publicId)}
 //                           className="w-full h-auto rounded-md"
 //                           autoPlay
 //                           muted
 //                           loop
 //                         />
-//                       ) : (
-//                         <div className="text-gray-400 text-sm">
-//                           Unsupported media type
-//                         </div>
-//                       )}
-//                       <button
-//                         type="button"
-//                         onClick={removeMedia}
-//                         className="mt-2 px-3 py-1 text-sm text-white bg-red-500 rounded hover:bg-red-400 transition"
-//                       >
-//                         Remove Media
-//                       </button>
-//                     </div>
-//                   )}
-//                 </div>
+//                       )} */}
+//                     {renderMediaPreview(blogForm.media)}
+//                     <button
+//                       type="button"
+//                       onClick={removeMedia}
+//                       className="mt-2 px-3 py-1 text-sm text-white bg-red-500 rounded hover:bg-red-400 transition"
+//                     >
+//                       Remove Media
+//                     </button>
+//                   </div>
+//                 )}
 //               </div>
+//             </div>
 
-//               {/* Right Side */}
-//               <div>
-//                 <label className="block text-sm font-medium text-gray-300">Body (Story Content)</label>
-//                 <textarea
-//                   name="body"
-//                   className="w-full h-[375px] px-3 py-2 mt-1 bg-gray-700 border border-gray-600 rounded-md focus:ring focus:ring-green-500 outline-none resize-none"
-//                   placeholder="Write your story here..."
-//                   value={storyForm.body}
-//                   onChange={handleChange}
-//                   required
-//                 ></textarea>
+//             <div>
+//               <label className="block text-sm font-medium text-gray-300">Blog Description</label>
+//               <textarea
+//                 name="description"
+//                 className="w-full h-[375px] px-3 py-2 mt-1 bg-gray-700 border border-gray-600 rounded-md focus:ring focus:ring-green-500 outline-none resize-none"
+//                 value={blogForm.description}
+//                 onChange={handleChange}
+//                 required
+//               ></textarea>
+//               {/* <button
+//                 type="submit"
+//                 className="w-full py-2 text-white bg-green-500 rounded-md hover:bg-green-400 transition mt-4"
+//                 disabled={isUploading}
+//               >
+//                 {editingId ? "Update Blog" : "Add Blog"}
+//               </button> */}
+//               <button
+//                 type="submit"
+//                 disabled={loading}
+//                 className={` w-full px-4 py-2 rounded ${loading ? "bg-gray-400 cursor-not-allowed" : "bg-green-500 hover:bg-green-600"
+//                   } text-white`}
+//               >
+//                 {loading ? "Submitting..." : editingId ? "Update Blog" : "Add Blog"}
+//               </button>
+//               <Link to="/blogs">
 //                 <button
-//                   type="submit"
-//                   className="w-full py-2 text-white bg-green-500 rounded-md hover:bg-green-400 transition"
+//                   type="button"
+//                   className="w-full mt-2 py-2 text-white bg-green-500 rounded-md hover:bg-green-400 transition"
 //                 >
-//                   {editingId ? "Update Story" : "Add Story"}
+//                   Show All blog
 //                 </button>
-//                 <Link to="/stories">
-//                   <button
-//                     type="button"
-//                     onClick={() => setShowstoriesList(true)}
-//                     className="w-full mt-2 py-2 text-white bg-green-500 rounded-md hover:bg-green-400 transition"
-//                   >
-//                     Show All Stories
-//                   </button>
-//                 </Link>
-//               </div>
-//             </form>
-//           </div>
+//               </Link>
+//             </div>
+//           </form>
 //         </div>
-//         <ToastContainer />
 //       </div>
+//       <ToastContainer position="top-right" autoClose={3000} />
 //     </>
 //   );
 // };
 
-// export default StoriesForm;
-
-
-"use client";
-
+// export default BlogForm;
 import { Helmet } from "react-helmet";
 import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { AdvancedImage, AdvancedVideo } from '@cloudinary/react';
-import { Cloudinary } from '@cloudinary/url-gen';
-import { addstories, getAllstories, getstoriesById, updatestories } from "../api/CRUD";
+import { addBlog, getBlogById, updateBlog } from "../redux/slices/blogSlice";
+import { useDispatch } from "react-redux";
 
-// Initialize Cloudinary instance
-const cld = new Cloudinary({
-  cloud: {
-    cloudName: 'dcevzhfy9'
-  }
-});
-
-const StoriesForm = () => {
+const BlogForm = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
+  const dispatch = useDispatch()
 
-  const [storyForm, setStoryForm] = useState({
-    name: "",
-    email: "",
+  const [blogForm, setblogForm] = useState({
     title: "",
-    body: "",
-    badge: "",
+    author: "",
+    description: "",
+    category: "",
+    tags: [],
     media: null,
   });
 
-  const [storiesList, setStoriesList] = useState([]);
+  // Separate state for tags input display
+  const [tagsInput, setTagsInput] = useState("");
+
+  const [blogList, setblogList] = useState([]);
   const [editingId, setEditingId] = useState(null);
-  const [showstoriesList, setShowstoriesList] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
+  const [showblogList, setShowblogList] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [isUrlMode, setIsUrlMode] = useState(false); // Switch between file upload and URL input
+  const [mediaUrl, setMediaUrl] = useState(""); // Store URL input
 
   useEffect(() => {
-    loadstories();
     if (id) {
       handleEditFromParams(id);
+    } else {
+      resetForm();
+      setShowblogList(true);
     }
-  }, [id]);
-
-  const loadstories = async () => {
-    try {
-      const data = await getAllstories();
-      setStoriesList(data);
-    } catch (error) {
-      toast.error("Failed to load stories", { position: "top-right" });
-      console.error("Load stories error:", error);
-    }
-  };
+  }, [id])
 
   const handleEditFromParams = async (id) => {
     try {
-      const storiesData = await getstoriesById(id);
-      if (storiesData) {
-        setStoryForm({
-          name: storiesData.name || "",
-          email: storiesData.email || "",
-          title: storiesData.title || "",
-          body: storiesData.body || "",
-          badge: storiesData.badge || "",
-          media: storiesData.media || null,
+      const blogData = await dispatch(getBlogById(id));
+      console.log("blogData", blogData);
+      if (blogData) {
+        const tags = blogData.payload.blog.tags || [];
+        setblogForm({
+          title: blogData.payload.blog.title || "",
+          author: blogData.payload.blog.author || "",
+          description: blogData.payload.blog.description || "",
+          category: blogData.payload.blog.category || "",
+          tags: tags,
+          media: blogData.payload.blog.media || null,
         });
+        // Set the tags input display
+        setTagsInput(tags.join(", "));
+
+        // Handle media URL if it exists and is a string URL
+        if (blogData.payload.blog.media && typeof blogData.payload.blog.media === 'string' && !blogData.payload.blog.media.startsWith('data:')) {
+          setIsUrlMode(true);
+          setMediaUrl(blogData.payload.blog.media);
+        } else {
+          setIsUrlMode(false);
+          setMediaUrl("");
+        }
+
         setEditingId(id);
-        setShowstoriesList(false);
+        setShowblogList(false);
       }
     } catch (error) {
-      toast.error("Failed to load story", { position: "top-right" });
+      toast.error("Failed to load Blog", { position: "top-right" });
       console.error("Edit from params error:", error);
     }
   };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setStoryForm((prev) => ({ ...prev, [name]: value }));
+    setblogForm(prev => ({ ...prev, [name]: value }));
+  };
+
+  // Enhanced tags handling function
+  const handleTagsChange = (e) => {
+    const value = e.target.value;
+    setTagsInput(value);
+
+    // Parse tags from input - split by comma, semicolon, or multiple spaces
+    const tagsArray = value
+      .split(/[,;]|\s{2,}/) // Split by comma, semicolon, or 2+ spaces
+      .map(tag => tag.trim()) // Remove extra spaces
+      .filter(tag => tag.length > 0); // Remove empty strings
+
+    setblogForm(prev => ({ ...prev, tags: tagsArray }));
+  };
+
+  // Handle Enter key and other special cases for tags
+  const handleTagsKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      // Add current input as tag and clear input
+      const currentInput = tagsInput.trim();
+      if (currentInput) {
+        const newTags = [...blogForm.tags];
+        // Check if tag already exists
+        if (!newTags.includes(currentInput)) {
+          newTags.push(currentInput);
+          setblogForm(prev => ({ ...prev, tags: newTags }));
+        }
+        setTagsInput("");
+      }
+    }
+  };
+
+  // Remove individual tag
+  const removeTag = (indexToRemove) => {
+    const newTags = blogForm.tags.filter((_, index) => index !== indexToRemove);
+    setblogForm(prev => ({ ...prev, tags: newTags }));
+    // Update input display
+    setTagsInput(newTags.join(", "));
+  };
+
+  // Handle URL input change
+  const handleUrlChange = (e) => {
+    const url = e.target.value;
+    setMediaUrl(url);
+
+    // Validate URL format
+    if (url.trim()) {
+      try {
+        new URL(url);
+        setblogForm(prev => ({ ...prev, media: url }));
+      } catch (error) {
+        // Invalid URL, don't update form
+        console.log("Invalid URL format");
+      }
+    } else {
+      setblogForm(prev => ({ ...prev, media: null }));
+    }
+  };
+
+  // Toggle between file upload and URL input
+  const toggleInputMode = () => {
+    setIsUrlMode(!isUrlMode);
+    // Clear media when switching modes
+    setblogForm(prev => ({ ...prev, media: null }));
+    setMediaUrl("");
+    if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   const handleMediaChange = async (e) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
 
-      if (!file.type.match('image.*') && !file.type.match('video.*')) {
-        toast.error("Only images and videos are allowed");
+      if (!file.type.match('image.*') && !file.type.match('video.*') && !file.type.match('gif.*')) {
+        toast.error("Only images, videos, and gifs are allowed");
         return;
       }
 
       try {
-        setIsUploading(true);
-        const toastId = toast.loading("Uploading media...", { position: "top-right" });
-
-        const formData = new FormData();
-        formData.append('file', file);
-        formData.append('upload_preset', 'stories_upload');
-        formData.append('folder', 'TechAssignment');
-        formData.append('public_id', `${Date.now()}_${file.name.split('.')[0]}`);
-
-        const response = await fetch(
-          `https://api.cloudinary.com/v1_1/dcevzhfy9/upload`,
-          { method: 'POST', body: formData }
-        );
-
-        const data = await response.json();
-
-        if (!response.ok) throw new Error(data.error?.message || 'Upload failed');
-
-        setStoryForm(prev => ({
-          ...prev,
-          media: {
-            publicId: data.public_id,
-            url: data.secure_url,
-            fileType: data.resource_type,
-            format: data.format
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          const base64 = reader.result;
+          if (!base64) {
+            toast.error("Failed to read file");
+            return;
           }
-        }));
 
-        toast.update(toastId, {
-          render: "Media uploaded successfully!",
-          type: "success",
-          isLoading: false,
-          autoClose: 3000
-        });
+          setblogForm((prev) => ({
+            ...prev,
+            media: base64,
+          }));
+        };
+
+        reader.readAsDataURL(file);
       } catch (error) {
         toast.error(`Upload failed: ${error.message}`);
         console.error("Upload error:", error);
-      } finally {
-        setIsUploading(false);
       }
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
     try {
       if (editingId) {
-        const data = await updatestories(editingId, storyForm);
+        const data = await dispatch(updateBlog({ blogId: editingId, blogData: blogForm }));
         if (data) {
-          toast.success("Story updated successfully");
+          toast.success("Blog updated successfully");
           resetForm();
           navigate("/");
         }
       } else {
-        const data = await addstories(storyForm);
+        const data = await dispatch(addBlog(blogForm));
         if (data) {
-          toast.success("Story added successfully");
-          resetForm();
+          toast.success("Blog added successfully");
         }
       }
-      loadstories();
     } catch (error) {
       toast.error("An error occurred. Please try again.");
       console.error("Submission error:", error);
+    } finally {
+      setLoading(false);
+      resetForm();
+      navigate("/");
     }
   };
 
   const resetForm = () => {
-    setStoryForm({
-      name: "",
-      email: "",
+    setblogForm({
       title: "",
-      body: "",
-      badge: "",
+      description: "", // Fixed typo: was "decsription"
+      author: "",
+      category: "",
+      tags: [],
       media: null,
     });
+    setTagsInput(""); // Reset tags input
+    setMediaUrl(""); // Reset URL input
+    setIsUrlMode(false); // Reset to file upload mode
     setEditingId(null);
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   const removeMedia = () => {
-    setStoryForm(prev => ({ ...prev, media: null }));
+    setblogForm(prev => ({ ...prev, media: null }));
+    setMediaUrl("");
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
@@ -893,162 +636,252 @@ const StoriesForm = () => {
     toast.info("Edit cancelled");
   };
 
+  const renderMediaPreview = (media) => {
+    if (!media) return null;
+    console.log("renderMediaPreview", media);
+
+    // Handle base64 images
+    if (media.startsWith('data:image')) {
+      return (
+        <img
+          src={media}
+          className="w-full h-[350px] rounded-md"
+          alt="Blog media preview"
+        />
+      );
+    }
+
+    // Handle case where media is just a URL string
+    if (typeof media === 'string') {
+      const extension = media.split('.').pop().toLowerCase();
+      const isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(extension);
+
+      return isImage ? (
+        <img
+          src={media}
+          className="w-full h-[350px] rounded-md"
+          alt="Blog media"
+        />
+      ) : (
+        <video
+          src={media}
+          className="w-full h-[350px] rounded-md"
+          autoPlay
+          muted
+          loop
+        />
+      );
+    }
+
+    return null;
+  };
+
   return (
     <>
       <Helmet>
-        <title>Submit Stories | New York Lore</title>
-        <meta name="description" content="Share your New York stories through photos, videos, and more." />
+        <title>Create Blog</title>
+        <meta name="description" content="Share your New York blog through photos, videos, and more." />
       </Helmet>
-      <div className="overflow-hidden min-h-screen">
-        <div className="flex items-center min-h-screen justify-center bg-gray-900 text-white px-10">
-          <div className="w-full bg-gray-800 p-8 rounded-lg shadow-lg">
-            <h2 className="text-3xl font-bold text-center text-green-400 mb-6">
-              {editingId ? "Edit Story" : "Add New Story"}
-            </h2>
+      <div className="flex items-center justify-center min-h-screen py-5 bg-gray-900 text-white px-10">
+        <div className="w-full bg-gray-800 p-8 rounded-lg shadow-lg">
+          <h2 className="text-3xl font-bold text-center text-green-400 mb-6">
+            {editingId ? "Edit Blog" : "Add New Blog"}
+          </h2>
 
-            {editingId && (
-              <div className="text-center mb-4">
-                <button
-                  onClick={cancelEdit}
-                  className="px-4 py-2 text-white bg-red-500 rounded-md hover:bg-red-400 transition"
-                >
-                  Cancel Edit
-                </button>
-              </div>
-            )}
+          {editingId && (
+            <div className="text-center mb-4">
+              <button
+                onClick={cancelEdit}
+                className="px-4 py-2 text-white bg-red-500 rounded-md hover:bg-red-400 transition"
+              >
+                Cancel Edit
+              </button>
+            </div>
+          )}
 
-            <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-300">Author Name</label>
-                  <input
-                    type="text"
-                    name="name"
-                    className="w-full px-3 py-2 mt-1 bg-gray-700 border border-gray-600 rounded-md focus:ring focus:ring-green-500 outline-none"
-                    value={storyForm.name}
-                    onChange={handleChange}
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-300">Email</label>
-                  <input
-                    type="email"
-                    name="email"
-                    className="w-full px-3 py-2 mt-1 bg-gray-700 border border-gray-600 rounded-md focus:ring focus:ring-green-500 outline-none"
-                    value={storyForm.email}
-                    onChange={handleChange}
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-300">Title</label>
-                  <input
-                    type="text"
-                    name="title"
-                    className="w-full px-3 py-2 mt-1 bg-gray-700 border border-gray-600 rounded-md focus:ring focus:ring-green-500 outline-none"
-                    value={storyForm.title}
-                    onChange={handleChange}
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-300">Badge</label>
-                  <select
-                    name="badge"
-                    value={storyForm.badge}
-                    onChange={handleChange}
-                    className="w-full px-3 py-2 mt-1 bg-gray-700 border border-gray-600 rounded-md focus:ring focus:ring-green-500 outline-none"
-                    required
-                  >
-                    <option value="">Select a badge</option>
-                    <option value="Article">Article</option>
-                    <option value="Poems">Poems</option>
-                    <option value="Stories">Stories</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-300">
-                    {storyForm.media ? "Replace Media" : "Upload Image or Video"}
-                  </label>
-                  <input
-                    type="file"
-                    ref={fileInputRef}
-                    accept="image/*,video/*"
-                    disabled={isUploading}
-                    className="w-full px-3 py-2 mt-1 bg-gray-700 border border-gray-600 rounded-md focus:ring focus:ring-green-500 outline-none cursor-pointer disabled:opacity-50"
-                    onChange={handleMediaChange}
-                  />
-                  <p className="text-xs text-gray-400 mt-1">Supports images and videos (max 5MB)</p>
-
-                  {storyForm.media && storyForm.media.publicId && (
-                    <div className="mb-4 mt-2">
-                      {storyForm.media.fileType === 'image' ? (
-                        <AdvancedImage
-                          key={`img-${storyForm.media.publicId}`}
-                          cldImg={cld.image(storyForm.media.publicId)}
-                          className="w-full h-auto rounded-md"
-                          alt="Story media"
-                        />
-                      ) : (
-                        <AdvancedVideo
-                          key={`vid-${storyForm.media.publicId}`}
-                          cldVid={cld.video(storyForm.media.publicId)}
-                          className="w-full h-auto rounded-md"
-                          autoPlay
-                          muted
-                          loop
-                        />
-                      )}
-                      <button
-                        type="button"
-                        onClick={removeMedia}
-                        className="mt-2 px-3 py-1 text-sm text-white bg-red-500 rounded hover:bg-red-400 transition"
-                        disabled={isUploading}
-                      >
-                        Remove Media
-                      </button>
-                    </div>
-                  )}
-                </div>
+          <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-300">Blog Title</label>
+                <input
+                  type="text"
+                  name="title"
+                  className="w-full px-3 py-2 mt-1 bg-gray-700 border border-gray-600 rounded-md focus:ring focus:ring-green-500 outline-none"
+                  value={blogForm.title}
+                  onChange={handleChange}
+                  required
+                />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-300">Story Content</label>
-                <textarea
-                  name="body"
-                  className="w-full h-[375px] px-3 py-2 mt-1 bg-gray-700 border border-gray-600 rounded-md focus:ring focus:ring-green-500 outline-none resize-none"
-                  value={storyForm.body}
+                <label className="block text-sm font-medium text-gray-300">Blog Author</label>
+                <input
+                  type="text"
+                  name="author"
+                  className="w-full px-3 py-2 mt-1 bg-gray-700 border border-gray-600 rounded-md focus:ring focus:ring-green-500 outline-none"
+                  value={blogForm.author}
                   onChange={handleChange}
                   required
-                ></textarea>
-                <button
-                  type="submit"
-                  className="w-full py-2 text-white bg-green-500 rounded-md hover:bg-green-400 transition mt-4"
-                  disabled={isUploading}
-                >
-                  {editingId ? "Update Story" : "Add Story"}
-                </button>
-                <Link to="/stories">
-                  <button
-                    type="button"
-                    className="w-full mt-2 py-2 text-white bg-green-500 rounded-md hover:bg-green-400 transition"
-                  >
-                    Show All Stories
-                  </button>
-                </Link>
+                />
               </div>
-            </form>
-          </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-300">Category</label>
+                <select
+                  name="category"
+                  value={blogForm.category}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 mt-1 bg-gray-700 border border-gray-600 rounded-md focus:ring focus:ring-green-500 outline-none"
+                  required
+                >
+                  <option value="">Select a Category</option>
+                  <option value="Article">Article</option>
+                  <option value="Poems">Poems</option>
+                  <option value="blog">Blog</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-300">Tags</label>
+                <input
+                  type="text"
+                  name="tags"
+                  value={tagsInput}
+                  onChange={handleTagsChange}
+                  onKeyDown={handleTagsKeyDown}
+                  placeholder="Enter tags separated by commas, semicolons, or press Enter"
+                  className="w-full px-3 py-2 mt-1 bg-gray-700 border border-gray-600 rounded-md focus:ring focus:ring-green-500 outline-none"
+                />
+                <p className="text-xs text-gray-400 mt-1">
+                  Separate tags with commas, semicolons, or press Enter to add
+                </p>
+
+                {/* Display current tags */}
+                {blogForm.tags.length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {blogForm.tags.map((tag, index) => (
+                      <span
+                        key={index}
+                        className="inline-flex items-center px-2 py-1 text-xs bg-green-600 text-white rounded-full"
+                      >
+                        {tag}
+                        <button
+                          type="button"
+                          onClick={() => removeTag(index)}
+                          className="ml-1 text-white hover:text-red-200 focus:outline-none"
+                        >
+                          ×
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="block text-sm font-medium text-gray-300">
+                    {blogForm.media ? "Replace Media" : "Add Media"}
+                  </label>
+                  <div className="flex items-center space-x-2">
+                    <span className={`text-xs ${!isUrlMode ? 'text-green-400' : 'text-gray-400'}`}>
+                      Upload File
+                    </span>
+                    <button
+                      type="button"
+                      onClick={toggleInputMode}
+                      className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 ${isUrlMode ? 'bg-green-600' : 'bg-gray-600'
+                        }`}
+                    >
+                      <span
+                        className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${isUrlMode ? 'translate-x-5' : 'translate-x-1'
+                          }`}
+                      />
+                    </button>
+                    <span className={`text-xs ${isUrlMode ? 'text-green-400' : 'text-gray-400'}`}>
+                      Online URL
+                    </span>
+                  </div>
+                </div>
+
+                {isUrlMode ? (
+                  <div>
+                    <input
+                      type="url"
+                      value={mediaUrl}
+                      onChange={handleUrlChange}
+                      placeholder="Enter image or video URL (e.g., https://example.com/image.jpg)"
+                      className="w-full px-3 py-2 mt-1 bg-gray-700 border border-gray-600 rounded-md focus:ring focus:ring-green-500 outline-none"
+                    />
+                    <p className="text-xs text-gray-400 mt-1">
+                      Enter a direct URL to an image or video file
+                    </p>
+                  </div>
+                ) : (
+                  <div>
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      accept="image/*,video/*,gif/*"
+                      disabled={loading}
+                      className="w-full px-3 py-2 mt-1 bg-gray-700 border border-gray-600 rounded-md focus:ring focus:ring-green-500 outline-none cursor-pointer disabled:opacity-50"
+                      onChange={handleMediaChange}
+                    />
+                    <p className="text-xs text-gray-400 mt-1">
+                      Supports images and videos (max 5MB)
+                    </p>
+                  </div>
+                )}
+
+                {blogForm.media && (
+                  <div className="mb-4 mt-2">
+                    {renderMediaPreview(blogForm.media)}
+                    <button
+                      type="button"
+                      onClick={removeMedia}
+                      className="mt-2 px-3 py-1 text-sm text-white bg-red-500 rounded hover:bg-red-400 transition"
+                    >
+                      Remove Media
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-300">Blog Description</label>
+              <textarea
+                name="description"
+                className="w-full h-[375px] px-3 py-2 mt-1 bg-gray-700 border border-gray-600 rounded-md focus:ring focus:ring-green-500 outline-none resize-none"
+                value={blogForm.description}
+                onChange={handleChange}
+                required
+              ></textarea>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className={`w-full px-4 py-2 rounded mt-4 ${loading ? "bg-gray-400 cursor-not-allowed" : "bg-green-500 hover:bg-green-600"
+                  } text-white`}
+              >
+                {loading ? "Submitting..." : editingId ? "Update Blog" : "Add Blog"}
+              </button>
+
+              <Link to="/blogs">
+                <button
+                  type="button"
+                  className="w-full mt-2 py-2 text-white bg-green-500 rounded-md hover:bg-green-400 transition"
+                >
+                  Show All Blogs
+                </button>
+              </Link>
+            </div>
+          </form>
         </div>
-        <ToastContainer position="top-right" autoClose={3000} />
       </div>
+      <ToastContainer position="top-right" autoClose={3000} />
     </>
   );
 };
 
-export default StoriesForm;
+export default BlogForm;

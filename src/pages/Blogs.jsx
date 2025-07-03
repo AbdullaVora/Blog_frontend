@@ -1,72 +1,63 @@
-"use client";
-
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Helmet } from "react-helmet";
-import StoriesCard from "../components/StoriesCard";
-import { deletestories, getAllstories } from "../api/CRUD";
+import BlogsCard from "../components/BlogsCard";
+
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { useDispatch, useSelector } from "react-redux";
+import { deleteBlog, getBlogs } from "../redux/slices/blogSlice";
 
-const Stories = () => {
-    const [allStories, setAllStories] = useState([]);
-    const [filteredStories, setFilteredStories] = useState([]);
-    const [paginatedStories, setPaginatedStories] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
+const Blogs = () => {
     const [searchQuery, setSearchQuery] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage] = useState(6); // Items per page
 
-    useEffect(() => {
-        fetchAllStories();
-    }, []);
+    const dispatch = useDispatch();
 
-    useEffect(() => {
-        // Filter stories based on search query
-        const filtered = allStories.filter(story => 
-            story.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            story.content?.toLowerCase().includes(searchQuery.toLowerCase())
+    const { blogs, loading: BlogLoad } = useSelector((state) => state.blogs);
+
+    console.log("Blogs:", blogs);
+    // Directly compute values from Redux state
+    const allBlogs = blogs || [];
+    const loading = BlogLoad;
+    const error = !BlogLoad && allBlogs.length === 0 ? "No Blogs found" : null;
+
+    // Use useMemo for filtered blogs to optimize performance
+    const filteredBlogs = useMemo(() => {
+        return allBlogs.filter(blog =>
+            blog.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            blog.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            blog.content?.toLowerCase().includes(searchQuery.toLowerCase())
         );
-        setFilteredStories(filtered);
-        setCurrentPage(1);// Reset to first page when search changes
-    }, [searchQuery, allStories]);
+    }, [allBlogs, searchQuery]);
 
-    useEffect(() => {
-        // Paginate the filtered stories
+    // Use useMemo for paginated blogs
+    const paginatedBlogs = useMemo(() => {
         const startIndex = (currentPage - 1) * itemsPerPage;
         const endIndex = startIndex + itemsPerPage;
-        console.log(startIndex)
-        console.log(endIndex)
-        setPaginatedStories(filteredStories.slice(startIndex, endIndex));
-    }, [filteredStories, currentPage, itemsPerPage]);
+        return filteredBlogs.slice(startIndex, endIndex);
+    }, [filteredBlogs, currentPage, itemsPerPage]);
 
-    const fetchAllStories = async () => {
-        try {
-            setLoading(true);
-            setError(null);
-            const response = await getAllstories();
-            setAllStories(response || []);
-        } catch (err) {
-            console.error("Error loading stories:", err);
-            setError("Failed to load stories. Please try again later.");
-        } finally {
-            setLoading(false);
-        }
-    };
+    const totalPages = Math.ceil(filteredBlogs.length / itemsPerPage);
+
+    useEffect(() => {
+        dispatch(getBlogs());
+    }, [dispatch]);
+
+    // Reset to first page when search changes
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchQuery]);
 
     const deleteStory = async (id) => {
         try {
-            await deletestories(id);
+            await dispatch(deleteBlog(id));
             toast.success("Story deleted", { position: "top-right" });
-            const updatedStories = allStories.filter((story) => story.id !== id);
-            setAllStories(updatedStories);
         } catch (err) {
             console.error("Error deleting story:", err);
             toast.error("Failed to delete story", { position: "top-right" });
         }
     };
-
-    const totalPages = Math.ceil(filteredStories.length / itemsPerPage);
 
     const handlePageChange = (newPage) => {
         if (newPage > 0 && newPage <= totalPages) {
@@ -77,8 +68,8 @@ const Stories = () => {
     return (
         <>
             <Helmet>
-                <title>New York Lore – Discover the Untold Stories</title>
-                <meta name="description" content="A New York Lore platform showcasing New York’s hidden street-art, urban legends, and community stories—through photos, videos, poems, sketches, and interactive features." />
+                <title>The Daily Blogs – Discover the Untold Blogs</title>
+                <meta name="description" content="A The Daily Blogs platform showcasing New York's hidden street-art, urban legends, and community Blogs—through photos, videos, poems, sketches, and interactive features." />
             </Helmet>
 
             <div className="min-h-screen bg-gray-900 text-gray-100">
@@ -88,7 +79,7 @@ const Stories = () => {
                         <div className="flex flex-col md:flex-row gap-4">
                             <input
                                 type="text"
-                                placeholder="Search stories..."
+                                placeholder="Search Blogs..."
                                 className="flex-grow px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 text-gray-100"
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -120,22 +111,24 @@ const Stories = () => {
                         </div>
                     )}
 
-                    {/* Stories Grid */}
+                    {/* Blogs Grid */}
                     {!loading && !error && (
                         <>
-                            <div className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                                {paginatedStories.length > 0 ? (
-                                    paginatedStories.map((story) => (
-                                        <StoriesCard
-                                            key={story.id}
-                                            stories={story}
-                                            onDelete={deleteStory}
-                                        />
+                            <div className="mt-12 flex flex-wrap gap-6">
+                                {paginatedBlogs.length > 0 ? (
+                                    paginatedBlogs.map((blog) => (
+                                        <div className="w-full sm:w-[45%] lg:w-[32%]">
+                                            <BlogsCard
+                                                key={blog._id}
+                                                blog={blog}
+                                                onDelete={deleteStory}
+                                            />
+                                        </div>
                                     ))
                                 ) : (
                                     <div className="col-span-full text-center py-12">
                                         <p className="text-gray-400 text-lg">
-                                            {searchQuery ? "No matching stories found." : "No stories found."}
+                                            {searchQuery ? "No matching Blogs found." : "No Blogs found."}
                                         </p>
                                     </div>
                                 )}
@@ -174,7 +167,7 @@ const Stories = () => {
 
                             {/* Total Count */}
                             <div className="text-center mt-4 text-gray-400 text-sm">
-                                Showing {(currentPage - 1) * itemsPerPage + 1}-{Math.min(currentPage * itemsPerPage, filteredStories.length)} of {filteredStories.length} stories
+                                Showing {(currentPage - 1) * itemsPerPage + 1}-{Math.min(currentPage * itemsPerPage, filteredBlogs.length)} of {filteredBlogs.length} Blogs
                             </div>
                         </>
                     )}
@@ -203,4 +196,4 @@ const Stories = () => {
     );
 };
 
-export default Stories;
+export default Blogs;
