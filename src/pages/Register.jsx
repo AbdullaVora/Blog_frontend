@@ -41,7 +41,7 @@ const Register = () => {
                 }, 1000);
                 setLoading(false);
             } else {
-                toast.error(response?.payload?.error || "Registration failed. Please try again.");
+                toast.error(response?.payload?.message || "Registration failed. Please try again.");
                 setLoading(false);
             }
         })

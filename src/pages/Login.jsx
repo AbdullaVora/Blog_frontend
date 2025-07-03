@@ -28,7 +28,7 @@ const Login = () => {
                 setLoading(false);
             } else {
                 toast.dismiss(); // Dismiss any previous toasts
-                toast.error(response?.payload?.error || "Login failed. Please try again.");
+                toast.error(response?.payload?.message || "Login failed. Please try again.");
                 setLoading(false);
             }
         })
